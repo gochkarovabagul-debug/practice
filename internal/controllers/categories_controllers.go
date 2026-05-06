@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gochkarovabagul/practice/internal/models"
-	"github.com/gochkarovabagul/practice/internal/repositories"
+	"github.com/gochkarovabagul-debug/practice/internal/models"
+	"github.com/gochkarovabagul-debug/practice/internal/repositories"
 )
 
 func CreateCategory(c *gin.Context) {

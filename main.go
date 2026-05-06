@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/gochkarovabagul/practice/internal/controllers"
-	"github.com/gochkarovabagul/practice/internal/utils"
+	"github.com/gochkarovabagul-debug/practice/internal/controllers"
+	"github.com/gochkarovabagul-debug/practice/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
