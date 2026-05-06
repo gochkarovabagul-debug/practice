@@ -2,18 +2,19 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
-	"practice/internal/controllers"
-	"practice/internal/utils"
+
+	"github.com/gochkarovabagul/practice/internal/controllers"
+	"github.com/gochkarovabagul/practice/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	//db connection
-	connStr := fmt.Sprintf("user=%s dbname=%s password=%s host=%s", "postgres", "practice_db", "postgres", "localhost", "5432")
+	// connStr := fmt.Sprintf("user=%s dbname=%s password=%s host=%s", "postgres", "practice_db", "postgres", "localhost", "5432")
+	connStr := "host=localhost user=postgres password=postgres port=5432 sslmode=disable"
 	utils.ConnectDB(connStr)
 	defer utils.GetDB().Close(context.Background())
 
@@ -22,6 +23,7 @@ func main() {
 
 	rg := r.Group("/api")
 	controllers.UserRoutes(rg)
+	controllers.CategoryRoutes(rg)
 	if err := r.Run(":8080"); err != nil {
 		log.Fatalln(err)
 		os.Exit(1)
