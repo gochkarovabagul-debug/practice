@@ -4,8 +4,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gochkarovabagul-debug/practice/internal/models"
-	"github.com/gochkarovabagul-debug/practice/internal/repositories"
+	"github.com/gochkarovabagul/practice/internal/models"
+	"github.com/gochkarovabagul/practice/internal/repositories"
 )
 
 func UserList(c *gin.Context) {

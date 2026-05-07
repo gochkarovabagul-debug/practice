@@ -20,7 +20,6 @@ func main() {
 
 	//HTTP serve
 	r := gin.Default()
-
 	rg := r.Group("/api")
 	controllers.UserRoutes(rg)
 	controllers.CategoryRoutes(rg)
