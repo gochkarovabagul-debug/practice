@@ -1,4 +1,4 @@
-module github.com/gochkarovabagul/practice
+module github.com/gochkarovabagul-debug/practice
 
 go 1.26.1
 

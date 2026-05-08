@@ -23,6 +23,9 @@ func main() {
 	rg := r.Group("/api")
 	controllers.UserRoutes(rg)
 	controllers.CategoryRoutes(rg)
+	controllers.PharmacyRoutes(rg)
+	controllers.PharmacyMedicinesRoutes(rg)
+	controllers.OrderRoutes(rg)
 	if err := r.Run(":8080"); err != nil {
 		log.Fatalln(err)
 		os.Exit(1)

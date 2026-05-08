@@ -9,8 +9,8 @@ import (
 	"github.com/gochkarovabagul-debug/practice/internal/repositories"
 )
 
-func CreateCategory(c *gin.Context) {
-	var req models.CategoryCreateRequest
+func CreateOrder(c *gin.Context) {
+	var req models.OrderCreateRequest
 	err := c.Bind(&req)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -18,7 +18,7 @@ func CreateCategory(c *gin.Context) {
 		})
 		return
 	}
-	err1 := repositories.CreateCategory(c.Request.Context(), req.Name)
+	err1 := repositories.CreateOrder(c.Request.Context(), req.Name, req.Price, req.Description)
 	if err1 != nil {
 		c.JSON(500, gin.H{
 			"error": err1.Error(),
@@ -29,10 +29,10 @@ func CreateCategory(c *gin.Context) {
 		"success": true,
 	})
 }
-func DeleteCategory(c *gin.Context) {
-	categoryidstr := c.Param("id")
-	categoryid, _ := strconv.Atoi(categoryidstr)
-	err1 := repositories.DeleteCategory(c.Request.Context(), categoryid)
+func DeleteOrder(c *gin.Context) {
+	idstr := c.Param("id")
+	id, _ := strconv.Atoi(idstr)
+	err1 := repositories.DeleteOrder(c.Request.Context(), id)
 	if err1 != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err1.Error(),
@@ -43,10 +43,10 @@ func DeleteCategory(c *gin.Context) {
 		"success": true,
 	})
 }
-func UpdateCategory(c *gin.Context) {
-	categoryidstr := c.Param("id")
-	categoryid, _ := strconv.Atoi(categoryidstr)
-	var req models.CategoryCreateRequest
+func UpdateOrder(c *gin.Context) {
+	idstr := c.Param("id")
+	id, _ := strconv.Atoi(idstr)
+	var req models.OrderCreateRequest
 	err := c.Bind(&req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -54,7 +54,7 @@ func UpdateCategory(c *gin.Context) {
 		})
 		return
 	}
-	err = repositories.UpdateCategory(c.Request.Context(), categoryid, req)
+	err = repositories.UpdateOrder(c.Request.Context(), id, req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -65,10 +65,10 @@ func UpdateCategory(c *gin.Context) {
 		"success": true,
 	})
 }
-func GetCategory(c *gin.Context) {
-	categoryidstr := c.Param("id")
-	categoryid, _ := strconv.Atoi(categoryidstr)
-	req, err1 := repositories.GetCategory(c.Request.Context(), categoryid)
+func GetOrder(c *gin.Context) {
+	idstr := c.Param("id")
+	id, _ := strconv.Atoi(idstr)
+	req, err1 := repositories.GetOrder(c.Request.Context(), id)
 	if err1 != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err1.Error(),
@@ -81,9 +81,9 @@ func GetCategory(c *gin.Context) {
 	})
 }
 
-func CategoryRoutes(rg *gin.RouterGroup) {
-	rg.POST("/admin/categories/create", CreateCategory)
-	rg.DELETE("/admin/categories/delete/:categoryid", DeleteCategory)
-	rg.GET("/admin/categories/get/:categoryid", GetCategory)
-	rg.PUT("/admin/categories/update/:categoryid", UpdateCategory)
+func OrderRoutes(rg *gin.RouterGroup) {
+	rg.POST("/admin/orders/create", CreateOrder)
+	rg.DELETE("/admin/orders/delete/:id", DeleteOrder)
+	rg.GET("/admin/orders/get/:id", GetOrder)
+	rg.PUT("/admin/orders/update/:id", UpdateOrder)
 }

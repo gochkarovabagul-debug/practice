@@ -4,8 +4,8 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/gochkarovabagul/practice/internal/models"
-	"github.com/gochkarovabagul/practice/internal/utils"
+	"github.com/gochkarovabagul-debug/practice/internal/models"
+	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
 
 type UserFilter struct {

@@ -4,8 +4,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gochkarovabagul/practice/internal/models"
-	"github.com/gochkarovabagul/practice/internal/repositories"
+	"github.com/gochkarovabagul-debug/practice/internal/models"
+	"github.com/gochkarovabagul-debug/practice/internal/repositories"
 )
 
 func UserList(c *gin.Context) {
@@ -43,10 +43,10 @@ func CreateUser(c *gin.Context) {
 		})
 		return
 	}
-	err1 := repositories.CreateUser(c.Request.Context(), req.FirstName, req.LastName, req.Role, req.Password, req.Email)
-	if err1 != nil {
+	err = repositories.CreateUser(c.Request.Context(), req.FirstName, req.LastName, req.Role, req.Password, req.Email)
+	if err != nil {
 		c.JSON(500, gin.H{
-			"error": err1.Error(),
+			"error": err.Error(),
 		})
 		return
 	}
@@ -91,7 +91,7 @@ func UpdateUser(c *gin.Context) {
 	var req models.UserCreateRequest
 	err := c.Bind(&req)
 	if err != nil {
-		c.JSON(400, gin.H{
+		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
 		return
