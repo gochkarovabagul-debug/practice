@@ -8,6 +8,30 @@ import (
 	"github.com/gochkarovabagul-debug/practice/internal/repositories"
 )
 
+func PharmacyList(c *gin.Context) {
+	limitStr := c.Query("limit")
+	limit, _ := strconv.Atoi(limitStr)
+	offsetStr := c.Query("offset")
+	offset, _ := strconv.Atoi(offsetStr)
+	search := c.Query("search")
+	list, err := repositories.PharmacyList(c, repositories.PharmacyFilter{
+		Limit:  limit,
+		Offset: offset,
+		Search: search,
+	})
+	if err != nil {
+		c.JSON(500, gin.H{
+			"success":   false,
+			"error_msg": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    list,
+	})
+}
 func CreatePharmacy(c *gin.Context) {
 	var req models.PharmacyCreateRequest
 	err := c.Bind(&req)
@@ -82,7 +106,7 @@ func UpdatePharmacy(c *gin.Context) {
 	})
 }
 func PharmacyRoutes(rg *gin.RouterGroup) {
-	// rg.GET("/admin/pharmacy", UserList)
+	rg.GET("/admin/pharmacies", PharmacyList)
 	rg.POST("/admin/pharmacies/create", CreatePharmacy)
 	rg.DELETE("/admin/pharmacies/delete/:id", DeletePharmacy)
 	rg.GET("/admin/pharmacies/get/:id", GetPharmacy)

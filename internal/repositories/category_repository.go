@@ -2,12 +2,44 @@ package repositories
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/gochkarovabagul-debug/practice/internal/models"
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
 
 // func CategoryList()
+
+type CategoryFilter struct {
+	Limit  int
+	Offset int
+	Search string
+}
+
+func LenStrcategory(l []any) string {
+	return strconv.Itoa(len(l))
+}
+
+func CategoryList(c context.Context, f CategoryFilter, moreArg ...int) ([]models.Category, error) {
+	db := utils.GetDB()
+	sqlWhere := ` `
+	sqlArgs := []any{f.Limit, f.Offset}
+	if f.Search != "" {
+		sqlArgs = append(sqlArgs, f.Search)
+		sqlWhere += `and (name ilike '%$` + LenStrcategory(sqlArgs) + `%')`
+	}
+	rows, err := db.Query(c, `select id, name from categories where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
+	if err != nil {
+		return nil, err
+	}
+	list := []models.Category{}
+	for rows.Next() {
+		item := models.Category{}
+		rows.Scan(&item.CategoryId, &item.Name)
+		list = append(list, item)
+	}
+	return list, nil
+}
 
 func CreateCategory(c context.Context, name string) error {
 	db := utils.GetDB()
@@ -19,7 +51,7 @@ func CreateCategory(c context.Context, name string) error {
 }
 func DeleteCategory(c context.Context, categoryid int) error {
 	db := utils.GetDB()
-	_, err := db.Exec(c, "delete from categories where categoryid=$1", categoryid)
+	_, err := db.Exec(c, "delete from categories where id=$1", categoryid)
 	if err != nil {
 		return err
 	}
@@ -28,7 +60,7 @@ func DeleteCategory(c context.Context, categoryid int) error {
 func GetCategory(c context.Context, categoryid int) (models.CategoryResponse, error) {
 	db := utils.GetDB()
 	var req models.CategoryResponse
-	rows := db.QueryRow(context.Background(), "select  categoryid, name from categories where categoryid=$1", categoryid)
+	rows := db.QueryRow(context.Background(), "select  id, name from categories where categoryid=$1", categoryid)
 	err := rows.Scan(&req.CategoryId, &req.Name)
 	if err != nil {
 		return models.CategoryResponse{}, err
@@ -38,7 +70,7 @@ func GetCategory(c context.Context, categoryid int) (models.CategoryResponse, er
 func UpdateCategory(c context.Context, categoryid int, req models.CategoryCreateRequest) error {
 	db := utils.GetDB()
 
-	_, err := db.Exec(context.Background(), "update categories set name=$1 where categoryid=$2", req.Name, categoryid)
+	_, err := db.Exec(context.Background(), "update categories set name=$1 where id=$2", req.Name, categoryid)
 	if err != nil {
 		return err
 	}

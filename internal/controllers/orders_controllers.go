@@ -9,6 +9,29 @@ import (
 	"github.com/gochkarovabagul-debug/practice/internal/repositories"
 )
 
+func OrderList(c *gin.Context) {
+	limitStr := c.Query("limit")
+	limit, _ := strconv.Atoi(limitStr)
+	offsetStr := c.Query("offset")
+	offset, _ := strconv.Atoi(offsetStr)
+	search := c.Query("search")
+	list, err := repositories.OrderList(c, repositories.OrderFilter{
+		Limit:  limit,
+		Offset: offset,
+		Search: search,
+	})
+	if err != nil {
+		c.JSON(500, gin.H{
+			"success":   false,
+			"error_msg": err.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    list,
+	})
+}
 func CreateOrder(c *gin.Context) {
 	var req models.OrderCreateRequest
 	err := c.Bind(&req)
@@ -82,6 +105,7 @@ func GetOrder(c *gin.Context) {
 }
 
 func OrderRoutes(rg *gin.RouterGroup) {
+	rg.GET("/admin/orders", OrderList)
 	rg.POST("/admin/orders/create", CreateOrder)
 	rg.DELETE("/admin/orders/delete/:id", DeleteOrder)
 	rg.GET("/admin/orders/get/:id", GetOrder)

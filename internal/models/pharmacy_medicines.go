@@ -1,5 +1,14 @@
 package models
 
+type PharmacyMedicine struct {
+	Id          int
+	Name        string
+	Description string
+	Price       int
+	NewPrice    int
+	CategoryId  int
+}
+
 type PharmacyMedicinesResponse struct {
 	Id          int    `json:"id"`
 	Name        string `json:"name"`

@@ -1,5 +1,12 @@
 package models
 
+type Order struct {
+	Id          int
+	Name        string
+	Price       int
+	Description string
+}
+
 type OrderResponse struct {
 	Id          int    `json:"id"`
 	Name        string `json:"name"`

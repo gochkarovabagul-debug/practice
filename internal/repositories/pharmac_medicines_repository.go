@@ -2,10 +2,43 @@ package repositories
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/gochkarovabagul-debug/practice/internal/models"
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
+
+type PharmacyMedicineFilter struct {
+	Limit  int
+	Offset int
+	Search string
+}
+
+func LenStrpharmacymedicine(l []any) string {
+	return strconv.Itoa(len(l))
+}
+
+func PharmacyMedicineList(c context.Context, f PharmacyMedicineFilter, moreArg ...int) ([]models.PharmacyMedicine, error) {
+	db := utils.GetDB()
+	sqlWhere := ` `
+	sqlArgs := []any{f.Limit, f.Offset}
+	if f.Search != "" {
+		sqlArgs = append(sqlArgs, f.Search)
+		sqlWhere += `and (name ilike '%$` + LenStrpharmacymedicine(sqlArgs) + `%')`
+	}
+
+	rows, err := db.Query(c, `select id,name, descripton, price, newprice categoryid from pharmacymedicines  where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
+	if err != nil {
+		return nil, err
+	}
+	list := []models.PharmacyMedicine{}
+	for rows.Next() {
+		item := models.PharmacyMedicine{}
+		rows.Scan(&item.Id, &item.Name, &item.Description, &item.Price, &item.NewPrice, &item.CategoryId)
+		list = append(list, item)
+	}
+	return list, nil
+}
 
 func CreatePharmacyMedicine(c context.Context, name string, description string, price int, newprice int, categoryid int) error {
 	db := utils.GetDB()
