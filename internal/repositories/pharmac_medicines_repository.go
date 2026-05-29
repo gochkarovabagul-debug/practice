@@ -42,7 +42,10 @@ func PharmacyMedicineList(c context.Context, f PharmacyMedicineFilter, moreArg .
 
 func CreatePharmacyMedicine(c context.Context, name string, description string, price int, newprice int, categoryid int) error {
 	db := utils.GetDB()
-	_, err := db.Exec(c, "insert into pharmacymedicines  (name, description, price, new_price, category_id) values ($1, $2, $3, $4, $5)", name, description, price, newprice, categoryid)
+	_, err := db.Exec(c,
+		`insert into pharmacymedicines  (name, description, price, new_price, 
+		category_id) values ($1, $2, $3, $4, $5)`,
+		name, description, price, newprice, categoryid)
 	if err != nil {
 		return err
 	}

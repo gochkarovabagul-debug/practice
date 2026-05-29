@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/gochkarovabagul-debug/practice/internal/models"
@@ -73,4 +74,17 @@ func UpdatePharmacy(c context.Context, id int, req models.PharmacyCreateRequest)
 		return err
 	}
 	return nil
+}
+func FindNearbyPharmacies(c context.Context, lon float64, lat float64) (models.NearPharmacies, error) {
+	db := utils.GetDB()
+	fmt.Println("LON:", lon)
+	fmt.Println("LAT:", lat)
+	var result models.NearPharmacies
+
+	rows := db.QueryRow(context.Background(), "SELECT name FROM pharmacies ORDER BY ST_Distance(ST_MakePoint(longitude, latitude)::geography, ST_MakePoint($1, $2)::geography) ASC LIMIT 1", lon, lat)
+	err := rows.Scan(&result.Name)
+	if err != nil {
+		return models.NearPharmacies{}, err
+	}
+	return result, nil
 }

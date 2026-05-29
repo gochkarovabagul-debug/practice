@@ -21,6 +21,9 @@ func LenStr(l []any) string {
 
 func UserList(c context.Context, f UserFilter, moreArg ...int) ([]models.User, error) {
 	db := utils.GetDB()
+	if f.Limit == 0 {
+		f.Limit = 10
+	}
 	sqlWhere := ` `
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
@@ -31,7 +34,7 @@ func UserList(c context.Context, f UserFilter, moreArg ...int) ([]models.User, e
 		sqlArgs = append(sqlArgs, f.Search)
 		sqlWhere += `and (role=$` + LenStr(sqlArgs) + `)`
 	}
-	rows, err := db.Query(c, `select id,first_name, role, password, email from users where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
+	rows, err := db.Query(c, `select id, first_name, last_name, role, password, email from users where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
 	if err != nil {
 		return nil, err
 	}
@@ -43,10 +46,9 @@ func UserList(c context.Context, f UserFilter, moreArg ...int) ([]models.User, e
 	}
 	return list, nil
 }
-func CreateUser(c context.Context, firstname string, lastname string, role string, password string, email string) error {
+func Registration(c context.Context, firstname string, lastname string, role string, password string, email string) error {
 	db := utils.GetDB()
 	_, err := db.Exec(c, "insert into users (first_name, last_name, role, password, email) values ($1, $2, $3, $4, $5)", firstname, lastname, role, password, email)
-	// _, err = db.Exec(context.Background(), "insert into expenses (Id, Date, Description, Amount, CategoryId )values ('"+idStr+"', '"+req.Date+"', '"+req.Description+"', '"+amountStr+"', '"+categoryIdstr+"');")
 	if err != nil {
 		return err
 	}
@@ -60,6 +62,15 @@ func DeleteUser(c context.Context, id int) error {
 	}
 	return nil
 }
+func DeleteToken(c context.Context, token string) error {
+	db := utils.GetDB()
+	_, err := db.Exec(c, "delete from tokens where token=$1", token)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func GetUser(c context.Context, id int) (models.UserResponse, error) {
 	db := utils.GetDB()
 	var req models.UserResponse
@@ -70,6 +81,19 @@ func GetUser(c context.Context, id int) (models.UserResponse, error) {
 	}
 	return req, nil
 }
+func GetUserEmail(c context.Context, email string) (models.UserResponse, error) {
+	db := utils.GetDB()
+	var user models.UserResponse
+
+	rows := db.QueryRow(context.Background(), "select  id, first_name, last_name, role, password, email from users where email=$1", email)
+
+	err := rows.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Role, &user.Password, &user.Email)
+	if err != nil {
+		return models.UserResponse{}, err
+	}
+	return user, nil
+}
+
 func UpdateUser(c context.Context, id int, req models.UserCreateRequest) error {
 	db := utils.GetDB()
 
@@ -79,6 +103,3 @@ func UpdateUser(c context.Context, id int, req models.UserCreateRequest) error {
 	}
 	return nil
 }
-
-// func UserUpdate()
-// func UserDelete()

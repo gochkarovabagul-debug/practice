@@ -27,7 +27,7 @@ func OrderList(c context.Context, f OrderFilter, moreArg ...int) ([]models.Order
 		sqlWhere += `and (name ilike '%$` + LenStrorder(sqlArgs) + `%')`
 	}
 
-	rows, err := db.Query(c, `select id,name,s price, description from orders where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
+	rows, err := db.Query(c, `select id,name, price, description from orders where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
 	if err != nil {
 		return nil, err
 	}
