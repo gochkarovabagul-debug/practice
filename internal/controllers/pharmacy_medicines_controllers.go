@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gochkarovabagul-debug/practice/internal/models"
-	"github.com/gochkarovabagul-debug/practice/internal/repositories"
+	"github.com/gochkarovabagul-debug/practice/internal/permission"
+	"github.com/gochkarovabagul-debug/practice/internal/services"
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
 
@@ -15,7 +17,7 @@ func PharmacyMedicineList(c *gin.Context) {
 	offsetStr := c.Query("offset")
 	offset, _ := strconv.Atoi(offsetStr)
 	search := c.Query("search")
-	list, err := repositories.PharmacyMedicineList(c, repositories.PharmacyMedicineFilter{
+	list, err := services.PharmacyMedicineListService(c, models.PharmacyMedicineFilter{
 		Limit:  limit,
 		Offset: offset,
 		Search: search,
@@ -23,37 +25,32 @@ func PharmacyMedicineList(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(200, gin.H{
-	// 	"success": true,
-	// 	"data":    list,
-	// })
 	utils.SuccessResponse(c, list)
 }
 func CreatePharmacyMedicine(c *gin.Context) {
+	auth := c.GetHeader("Authorization")
+	token := strings.TrimPrefix(auth, "Bearer ")
+	token = strings.TrimSpace(token)
 	var req models.PharmacyMedicinesCreateRequest
 	err := c.Bind(&req)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err = repositories.CreatePharmacyMedicine(c.Request.Context(), req.Name, req.Description, req.Price, req.NewPrice, req.CategoryId)
-	if utils.ErrorCheck(c, err) {
+	err = services.CreatePharmacyMedicineService(c, req.Name, req.Description, req.Price, req.NewPrice, req.CategoryId, req.PharmacyId, token)
+	if err != nil {
+		utils.ErrorResponse(c, err)
 		return
 	}
-	// c.JSON(200, gin.H{
-	// 	"success": true,
-	// })
 	utils.SuccessResponse(c, "medicine created")
 }
 func DeletePharmacyMedicine(c *gin.Context) {
 	idstr := c.Param("id")
 	id, _ := strconv.Atoi(idstr)
-	err := repositories.DeletePharmacyMedicine(c.Request.Context(), id)
-	if utils.ErrorCheck(c, err) {
+	err := services.DeletePharmacyMedicineService(c, id)
+	if err != nil {
+		utils.ErrorResponse(c, err)
 		return
 	}
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"success": true,
-	// })
 	utils.SuccessResponse(c, "medicine deleted")
 }
 func UpdatePharmacyMedicine(c *gin.Context) {
@@ -64,33 +61,25 @@ func UpdatePharmacyMedicine(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err = repositories.UpdatePharmacyMedicine(c.Request.Context(), id, req)
+	err = services.UpdatePharmacyMedicineService(c, id, req)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"success": true,
-	// })
 	utils.SuccessResponse(c, "medicine updated")
 }
 func GetPharmacyMedicine(c *gin.Context) {
 	idstr := c.Param("id")
 	id, _ := strconv.Atoi(idstr)
-	req, err := repositories.GetPharmacyMedicine(c.Request.Context(), id)
+	req, err := services.GetPharmacyMedicineServices(c, id)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"success": true,
-	// 	"data":    req,
-	// })
 	utils.SuccessResponse(c, req)
 }
-
 func PharmacyMedicinesRoutes(rg *gin.RouterGroup) {
 	rg.GET("/admin/pharmacymedicines", PharmacyMedicineList)
-	rg.POST("/admin/pharmacymedicines/create", CreatePharmacyMedicine)
-	rg.DELETE("/admin/pharmacymedicines/delete/:id", DeletePharmacyMedicine)
+	rg.POST("/admin/pharmacymedicines/create", CreatePharmacyMedicine).Use(permission.RequirePharmacyAdmin())
+	rg.DELETE("/admin/pharmacymedicines/delete/:id", DeletePharmacyMedicine).Use(permission.RequirePharmacyAdmin())
 	rg.GET("/admin/pharmacymedicines/get/:id", GetPharmacyMedicine)
-	rg.PUT("/admin/pharmacymedicines/update/:id", UpdatePharmacyMedicine)
+	rg.PUT("/admin/pharmacymedicines/update/:id", UpdatePharmacyMedicine).Use(permission.RequirePharmacyAdmin())
 }

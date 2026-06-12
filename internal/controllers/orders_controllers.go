@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gochkarovabagul-debug/practice/internal/models"
-	"github.com/gochkarovabagul-debug/practice/internal/repositories"
+	"github.com/gochkarovabagul-debug/practice/internal/services"
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
 
@@ -15,7 +15,7 @@ func OrderList(c *gin.Context) {
 	offsetStr := c.Query("offset")
 	offset, _ := strconv.Atoi(offsetStr)
 	search := c.Query("search")
-	list, err := repositories.OrderList(c, repositories.OrderFilter{
+	list, err := services.OrderListService(c, models.OrderFilter{
 		Limit:  limit,
 		Offset: offset,
 		Search: search,
@@ -23,10 +23,6 @@ func OrderList(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(200, gin.H{
-	// 	"success": true,
-	// 	"data":    list,
-	// })
 	utils.SuccessResponse(c, list)
 }
 func CreateOrder(c *gin.Context) {
@@ -35,25 +31,20 @@ func CreateOrder(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err = repositories.CreateOrder(c.Request.Context(), req.Name, req.Price, req.Description)
+	err = services.CreateOrderService(c, req.Name, req.Price, req.Description)
+
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(200, gin.H{
-	// 	"success": true,
-	// })
 	utils.SuccessResponse(c, "order created")
 }
 func DeleteOrder(c *gin.Context) {
 	idstr := c.Param("id")
 	id, _ := strconv.Atoi(idstr)
-	err := repositories.DeleteOrder(c.Request.Context(), id)
+	err := services.DeleteOrderService(c, id)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"success": true,
-	// })
 	utils.SuccessResponse(c, "order deleted")
 }
 func UpdateOrder(c *gin.Context) {
@@ -64,26 +55,19 @@ func UpdateOrder(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err = repositories.UpdateOrder(c.Request.Context(), id, req)
+	err = services.UpdateOrderService(c, id, req)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"success": true,
-	// })
 	utils.SuccessResponse(c, "order updated")
 }
 func GetOrder(c *gin.Context) {
 	idstr := c.Param("id")
 	id, _ := strconv.Atoi(idstr)
-	req, err := repositories.GetOrder(c.Request.Context(), id)
+	req, err := services.GetOrderServices(c, id)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"success": true,
-	// 	"data":    req,
-	// })
 	utils.SuccessResponse(c, req)
 }
 

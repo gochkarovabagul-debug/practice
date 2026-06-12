@@ -1,14 +1,13 @@
 package controllers
 
 import (
-	"crypto/rand"
-	"encoding/hex"
+	"strings"
 
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gochkarovabagul-debug/practice/internal/models"
-	"github.com/gochkarovabagul-debug/practice/internal/repositories"
+	"github.com/gochkarovabagul-debug/practice/internal/services"
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
 
@@ -19,7 +18,7 @@ func UserList(c *gin.Context) {
 	offset, _ := strconv.Atoi(offsetStr)
 	search := c.Query("search")
 	role := c.Query("role")
-	list, err := repositories.UserList(c, repositories.UserFilter{
+	list, err := services.UserListService(c, models.UserFilter{
 		Limit:  limit,
 		Offset: offset,
 		Search: search,
@@ -29,10 +28,6 @@ func UserList(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(200, gin.H{
-	// 	"success": true,
-	// 	"data":    list,
-	// })
 	utils.SuccessResponse(c, list)
 }
 func Registration(c *gin.Context) {
@@ -41,8 +36,7 @@ func Registration(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err = repositories.Registration(c.Request.Context(), req.FirstName, req.LastName, "customer", req.Password, req.Email)
-
+	err = services.RegistrationService(c, req.FirstName, req.LastName, "customer", req.Password, req.Email)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
@@ -51,90 +45,72 @@ func Registration(c *gin.Context) {
 func DeleteUser(c *gin.Context) {
 	idstr := c.Param("id")
 	id, _ := strconv.Atoi(idstr)
-	err := repositories.DeleteUser(c.Request.Context(), id)
+	err := services.DeleteUserService(c, id)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(200, gin.H{
-	// 	"success": true,
-	// })
 	utils.SuccessResponse(c, "user deleted")
 }
 func GetUser(c *gin.Context) {
-	idstr := c.Param("id")
-	id, _ := strconv.Atoi(idstr)
-	req, err := repositories.GetUser(c.Request.Context(), id)
+	auth := c.GetHeader("Authorization")
+	token := strings.TrimPrefix(auth, "Bearer ")
+	token = strings.TrimSpace(token)
+	req, err := services.GetUserService(c, token, false)
 	if utils.ErrorCheck(c, err) {
-
+		return
 	}
-	// c.JSON(200, gin.H{
-	// 	"success": true,
-	// 	"data":    req,
-	// })
 	utils.SuccessResponse(c, req)
 }
 func UpdateUser(c *gin.Context) {
-	idstr := c.Param("id")
-	id, _ := strconv.Atoi(idstr)
-	// var req models.UserResponse
-	var req models.UserCreateRequest
+	auth := c.GetHeader("Authorization")
+	token := strings.TrimPrefix(auth, "Bearer ")
+	token = strings.TrimSpace(token)
+	var req models.UserUpdateRequest
 	err := c.Bind(&req)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err = repositories.UpdateUser(c.Request.Context(), id, req)
+	err = services.UpdateUserService(c, token, req)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	// c.JSON(200, gin.H{
-	// 	"success": true,
-	// })
 	utils.SuccessResponse(c, "user updated")
 }
 
-func GenerateSecureToken(length int) string {
-	b := make([]byte, length)
-	if _, err := rand.Read(b); err != nil {
-		return ""
-	}
-	return hex.EncodeToString(b)
-}
-
 func Login(c *gin.Context) {
-	user, err := repositories.GetUserEmail(
-		c,
-		c.Query("email"))
-	// err handle
-	if utils.ErrorCheck(c, err) {
-		return
-	}
-
-	if user.Password != c.Query("password") {
-		// err handle for pass
-		c.JSON(400, gin.H{
-			"error": "wrong password",
-		})
-		return
-	}
-	Token := GenerateSecureToken(32)
-	err = repositories.InsertToken(c, Token, user.Id)
+	email := c.Query("email")
+	password := c.Query("password")
+	Token, err := services.LoginService(c, email, password)
 	if err != nil {
-		utils.ErrorResponse(c, err)
 		return
 	}
 	utils.SuccessResponse(c, Token)
 }
 func Logout(c *gin.Context) {
-	if repositories.CheckIsTokenReal(c, c.Query("token")) {
-		err := repositories.DeleteToken(c, c.Query("token"))
-		if err != nil {
-			utils.ErrorResponse(c, err)
-			return
-		}
-		utils.SuccessResponse(c, "logout")
-	} else {
-		utils.SuccessResponse(c, "non token")
+	token := c.Query("token")
+	message, err := services.LogoutService(c, token)
+	if err != nil {
+		utils.ErrorResponse(c, err)
+		return
 	}
+	utils.SuccessResponse(c, message)
+}
+func ChangePassword(c *gin.Context) {
+	auth := c.GetHeader("Authorization")
+	token := strings.TrimPrefix(auth, "Bearer ")
+	token = strings.TrimSpace(token)
+	var passchange models.ChangePasswordRequest
+	err := c.Bind(&passchange)
+	if utils.ErrorCheck(c, err) {
+		return
+	}
+	var req models.UserResponse
+	err = services.ChangePasswordService(c, token, true, passchange, req)
+	if utils.ErrorCheck(c, err) {
+		utils.ErrorResponse(c, err)
+		return
+	}
+	utils.SuccessResponse(c, "password changed")
 }
 func UserRoutes(rg *gin.RouterGroup) {
 	rg.GET("/logout", Logout)
@@ -142,6 +118,7 @@ func UserRoutes(rg *gin.RouterGroup) {
 	rg.GET("/admin/users", UserList)
 	rg.POST("/registration", Registration)
 	rg.DELETE("/admin/users/delete/:id", DeleteUser)
-	rg.GET("/admin/users/get/:id", GetUser)
-	rg.PUT("/admin/users/update/:id", UpdateUser)
+	rg.GET("/user/me", GetUser)
+	rg.POST("/user/me", UpdateUser)
+	rg.POST("/user/changepassword", ChangePassword)
 }

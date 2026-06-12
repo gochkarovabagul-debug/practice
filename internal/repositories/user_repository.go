@@ -71,11 +71,14 @@ func DeleteToken(c context.Context, token string) error {
 	return nil
 }
 
-func GetUser(c context.Context, id int) (models.UserResponse, error) {
+func GetUser(c context.Context, token string, hasPass bool) (models.UserResponse, error) {
 	db := utils.GetDB()
 	var req models.UserResponse
-	rows := db.QueryRow(context.Background(), "select  id, first_name, last_name, role, password, email from users where id=$1", id)
+	rows := db.QueryRow(c, "select  u.id, u.first_name, u.last_name, u.role, u.password, u.email from users u join tokens t on t.userid=u.id where t.token=$1", token)
 	err := rows.Scan(&req.Id, &req.FirstName, &req.LastName, &req.Role, &req.Password, &req.Email)
+	if !hasPass {
+		req.Password = ""
+	}
 	if err != nil {
 		return models.UserResponse{}, err
 	}
@@ -85,7 +88,7 @@ func GetUserEmail(c context.Context, email string) (models.UserResponse, error) 
 	db := utils.GetDB()
 	var user models.UserResponse
 
-	rows := db.QueryRow(context.Background(), "select  id, first_name, last_name, role, password, email from users where email=$1", email)
+	rows := db.QueryRow(c, "select  id, first_name, last_name, role, password, email from users where email=$1", email)
 
 	err := rows.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Role, &user.Password, &user.Email)
 	if err != nil {
@@ -94,10 +97,18 @@ func GetUserEmail(c context.Context, email string) (models.UserResponse, error) 
 	return user, nil
 }
 
-func UpdateUser(c context.Context, id int, req models.UserCreateRequest) error {
+func UpdateUser(c context.Context, token string, req models.UserUpdateRequest) error {
 	db := utils.GetDB()
 
-	_, err := db.Exec(context.Background(), "update users set first_name=$1, last_name=$2, role=$3, password=$4, email=$5  where id=$6", req.FirstName, req.LastName, req.Role, req.Password, req.Email, id)
+	_, err := db.Exec(c, "update users u set first_name=$1, last_name=$2 from tokens t where t.userid=u.id and t.token=$3", req.FirstName, req.LastName, token)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func UpdatePassword(c context.Context, token string, passchange models.ChangePasswordRequest) error {
+	db := utils.GetDB()
+	_, err := db.Exec(c, "update users u set password=$1 from tokens t where t.userid=u.id and t.token=$2", passchange.NewPassword, token)
 	if err != nil {
 		return err
 	}
