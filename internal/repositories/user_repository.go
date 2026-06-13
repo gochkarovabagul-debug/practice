@@ -8,18 +8,18 @@ import (
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
 
-type UserFilter struct {
-	Limit  int
-	Offset int
-	Search string
-	Role   string
-}
+// type UserFilter struct {
+// 	Limit  int
+// 	Offset int
+// 	Search string
+// 	Role   string
+// }
 
 func LenStr(l []any) string {
 	return strconv.Itoa(len(l))
 }
 
-func UserList(c context.Context, f UserFilter, moreArg ...int) ([]models.User, error) {
+func UserList(c context.Context, f models.UserFilter, moreArg ...int) ([]models.User, error) {
 	db := utils.GetDB()
 	if f.Limit == 0 {
 		f.Limit = 10
