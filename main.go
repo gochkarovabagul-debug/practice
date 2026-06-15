@@ -7,16 +7,25 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/gochkarovabagul-debug/practice/config"
 	"github.com/gochkarovabagul-debug/practice/internal/controllers"
 	"github.com/gochkarovabagul-debug/practice/internal/repositories"
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
-
-	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	connStr := "host=localhost user=postgres password=1234 port=5432 sslmode=disable"
-	utils.ConnectDB(connStr)
+	// connStr := "host=localhost user=postgres password=1234 port=5432 sslmode=disable"
+	// utils.ConnectDB(connStr)
+	config.LoadConfig()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	secretconnectionText := os.Getenv("DATABASE_URL")
+	utils.ConnectDB(secretconnectionText)
+	// defer utils.GetDB().Close()
 	defer utils.GetDB().Close()
 	r := gin.Default()
 	r.Use(Logger())

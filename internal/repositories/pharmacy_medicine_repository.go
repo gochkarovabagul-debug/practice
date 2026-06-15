@@ -14,6 +14,9 @@ func LenStrpharmacymedicine(l []any) string {
 
 func PharmacyMedicineList(c context.Context, f models.PharmacyMedicineFilter, moreArg ...int) ([]models.PharmacyMedicine, error) {
 	db := utils.GetDB()
+	if f.Limit == 0 {
+		f.Limit = 10
+	}
 	sqlWhere := ` `
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
@@ -21,14 +24,14 @@ func PharmacyMedicineList(c context.Context, f models.PharmacyMedicineFilter, mo
 		sqlWhere += `and (name ilike '%$` + LenStrpharmacymedicine(sqlArgs) + `%')`
 	}
 
-	rows, err := db.Query(c, `select id,name, descripton, price, newprice categoryid from pharmacymedicines  where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
+	rows, err := db.Query(c, `select id,name, description, price, new_price, category_id, pharmacy_id from pharmacymedicines  where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
 	if err != nil {
 		return nil, err
 	}
 	list := []models.PharmacyMedicine{}
 	for rows.Next() {
 		item := models.PharmacyMedicine{}
-		rows.Scan(&item.Id, &item.Name, &item.Description, &item.Price, &item.NewPrice, &item.CategoryId)
+		rows.Scan(&item.Id, &item.Name, &item.Description, &item.Price, &item.NewPrice, &item.CategoryId, &item.PharmacyId)
 		list = append(list, item)
 	}
 	return list, nil
