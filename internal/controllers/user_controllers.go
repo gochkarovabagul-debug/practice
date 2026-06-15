@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"strings"
+	"time"
 
 	"strconv"
 
@@ -77,14 +78,33 @@ func UpdateUser(c *gin.Context) {
 	utils.SuccessResponse(c, "user updated")
 }
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func Login(c *gin.Context) {
-	email := c.Query("email")
-	password := c.Query("password")
-	Token, err := services.LoginService(c, email, password)
+	var req LoginRequest
+	err := c.Bind(&req)
 	if err != nil {
+		utils.ErrorResponse(c, err)
 		return
 	}
-	utils.SuccessResponse(c, Token)
+	Token, err := services.LoginService(c, req.Email, req.Password)
+	if err != nil {
+		utils.ErrorResponse(c, err)
+		return
+	}
+	user, err := services.GetUserService(c, Token, false)
+	if err != nil {
+		utils.ErrorResponse(c, err)
+		return
+	}
+	utils.SuccessResponse(c, gin.H{
+		"token":      Token,
+		"expires_at": time.Now().AddDate(1, 0, 0), // TODO: change this
+		"user":       user,
+	})
 }
 func Logout(c *gin.Context) {
 	token := c.Query("token")
@@ -114,7 +134,7 @@ func ChangePassword(c *gin.Context) {
 }
 func UserRoutes(rg *gin.RouterGroup) {
 	rg.GET("/logout", Logout)
-	rg.POST("/login", Login)
+	rg.POST("/auth/login", Login)
 	rg.GET("/admin/users", UserList)
 	rg.POST("/registration", Registration)
 	rg.DELETE("/admin/users/delete/:id", DeleteUser)

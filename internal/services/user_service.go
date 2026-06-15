@@ -10,8 +10,25 @@ import (
 	"github.com/gochkarovabagul-debug/practice/internal/repositories"
 )
 
-func UserListService(c context.Context, filter models.UserFilter) (any, error) {
-	return repositories.UserList(c, filter)
+func UserListService(c context.Context, filter models.UserFilter) ([]models.UserResponse, error) {
+
+	list, err := repositories.UserList(c, filter)
+	if err != nil {
+		return nil, err
+	}
+	res := []models.UserResponse{}
+	for _, v := range list {
+		item := models.UserResponse{}
+		item.Id = v.ID
+		item.FirstName = v.FirstName
+		item.LastName = v.LastName
+		item.Role = v.Role
+		item.Password = v.Password
+		item.Email = v.Email
+		// ...
+		res = append(res, item)
+	}
+	return res, nil
 }
 func RegistrationService(c context.Context, firstname string, lastname string, role string, password string, email string) error {
 	return repositories.Registration(c, firstname, lastname, "customer", password, email)

@@ -8,13 +8,6 @@ import (
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
 
-// type UserFilter struct {
-// 	Limit  int
-// 	Offset int
-// 	Search string
-// 	Role   string
-// }
-
 func LenStr(l []any) string {
 	return strconv.Itoa(len(l))
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 	"strings"
@@ -18,11 +17,11 @@ import (
 func main() {
 	connStr := "host=localhost user=postgres password=1234 port=5432 sslmode=disable"
 	utils.ConnectDB(connStr)
-	defer utils.GetDB().Close(context.Background())
+	defer utils.GetDB().Close()
 	r := gin.Default()
 	r.Use(Logger())
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,

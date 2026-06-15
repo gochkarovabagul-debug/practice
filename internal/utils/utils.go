@@ -7,13 +7,13 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var db *pgx.Conn
+var db *pgxpool.Pool
 
 func ConnectDB(config string) {
-	conn, err := pgx.Connect(context.Background(), config)
+	conn, err := pgxpool.New(context.Background(), config)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Db error : %v\n", err)
 		os.Exit(1)
@@ -36,10 +36,10 @@ func ErrorResponse(c *gin.Context, err error) {
 func SuccessResponse(c *gin.Context, message any) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": message,
+		"data":    message,
 	})
 }
 
-func GetDB() *pgx.Conn {
+func GetDB() *pgxpool.Pool {
 	return db
 }

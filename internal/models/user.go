@@ -23,7 +23,7 @@ type UserCreateRequest struct {
 }
 type UserResponse struct {
 	Id        int    `json:"id"`
-	FirstName string `json:"firstname"`
+	FirstName string `json:"name"`
 	LastName  string `json:"lastname"`
 	Role      string `json:"role"`
 	Password  string `json:"-"`
