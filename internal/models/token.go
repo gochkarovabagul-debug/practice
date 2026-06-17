@@ -13,5 +13,5 @@ type TokenResponse struct {
 	UserId int
 }
 type TokenCheck struct {
-	Token
+	Token string
 }

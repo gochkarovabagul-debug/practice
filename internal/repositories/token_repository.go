@@ -44,8 +44,11 @@ func CheckIsTokenReal(c context.Context, token string) bool {
 	if err != nil {
 		return false
 	}
-	err = rows.Scan(&Token.Token)
-	if err != nil {
+	if rows.Next() {
+		err = rows.Scan(&Token.Token)
+		if err != nil {
+			return false
+		}
 		return true
 	}
 	return false
