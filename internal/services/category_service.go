@@ -8,7 +8,18 @@ import (
 )
 
 func CategoryListService(c context.Context, filter models.CategoryFilter) (any, error) {
-	return repositories.CategoryList(c, filter)
+	list, err := repositories.CategoryList(c, filter)
+	if err != nil {
+		return nil, err
+	}
+	res := []models.CategoryResponse{}
+	for _, v := range list {
+		item := models.CategoryResponse{}
+		item.CategoryId = v.CategoryId
+		item.Name = v.Name
+		res = append(res, item)
+	}
+	return res, nil
 }
 func CreateCategoryService(c context.Context, name string) error {
 	return repositories.CreateCategory(c, name)
