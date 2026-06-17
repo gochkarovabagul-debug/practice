@@ -107,7 +107,10 @@ func Login(c *gin.Context) {
 	})
 }
 func Logout(c *gin.Context) {
-	token := c.Query("token")
+	// token := c.Query("token")
+	auth := c.GetHeader("Authorization")
+	token := strings.TrimPrefix(auth, "Bearer ")
+	token = strings.TrimSpace(token)
 	message, err := services.LogoutService(c, token)
 	if err != nil {
 		utils.ErrorResponse(c, err)
@@ -133,7 +136,7 @@ func ChangePassword(c *gin.Context) {
 	utils.SuccessResponse(c, "password changed")
 }
 func UserRoutes(rg *gin.RouterGroup) {
-	rg.GET("/logout", Logout)
+	rg.GET("/auth/logout", Logout)
 	rg.POST("/auth/login", Login)
 	rg.GET("/admin/users", UserList)
 	rg.POST("/registration", Registration)

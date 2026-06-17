@@ -35,6 +35,7 @@ func LoadConfig() {
 		log.Fatalln(err)
 	}
 
+	
 	if App.HttpPort == 0 {
 		App.HttpPort = 8000
 	}

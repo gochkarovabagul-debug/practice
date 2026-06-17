@@ -14,6 +14,9 @@ func LenStrorder(l []any) string {
 
 func OrderList(c context.Context, f models.OrderFilter, moreArg ...int) ([]models.Order, error) {
 	db := utils.GetDB()
+	if f.Limit == 0 {
+		f.Limit = 10
+	}
 	sqlWhere := ` `
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
@@ -53,7 +56,7 @@ func DeleteOrder(c context.Context, id int) error {
 func GetOrder(c context.Context, id int) (models.OrderResponse, error) {
 	db := utils.GetDB()
 	var req models.OrderResponse
-	rows := db.QueryRow(c, "select  id, name,  price,description from orders where id=$1", id)
+	rows := db.QueryRow(c, "select  id, name, price, description from orders where id=$1", id)
 	err := rows.Scan(&req.Id, &req.Name, &req.Price, &req.Description)
 	if err != nil {
 		return models.OrderResponse{}, err

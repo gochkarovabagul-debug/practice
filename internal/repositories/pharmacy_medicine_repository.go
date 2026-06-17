@@ -20,8 +20,8 @@ func PharmacyMedicineList(c context.Context, f models.PharmacyMedicineFilter, mo
 	sqlWhere := ` `
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
-		sqlArgs = append(sqlArgs, f.Search)
-		sqlWhere += `and (name ilike '%$` + LenStrpharmacymedicine(sqlArgs) + `%')`
+		sqlArgs = append(sqlArgs, "%"+f.Search+"%")
+		sqlWhere += `and (name ilike $` + LenStrpharmacymedicine(sqlArgs)
 	}
 
 	rows, err := db.Query(c, `select id,name, description, price, new_price, category_id, pharmacy_id from pharmacymedicines  where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
@@ -59,8 +59,8 @@ func DeletePharmacyMedicine(c context.Context, id int) error {
 func GetPharmacyMedicine(c context.Context, id int) (models.PharmacyMedicinesResponse, error) {
 	db := utils.GetDB()
 	var req models.PharmacyMedicinesResponse
-	rows := db.QueryRow(c, "select  id, name, description, price, new_price, category_id from pharmacymedicines where id=$1", id)
-	err := rows.Scan(&req.Id, &req.Name, &req.Description, &req.Price, &req.NewPrice, &req.CategoryId)
+	rows := db.QueryRow(c, "select  id, name, description, price, new_price, category_id, pharmacy_id from pharmacymedicines where id=$1", id)
+	err := rows.Scan(&req.Id, &req.Name, &req.Description, &req.Price, &req.NewPrice, &req.CategoryId, &req.PharmacyId)
 	if err != nil {
 		return models.PharmacyMedicinesResponse{}, err
 	}

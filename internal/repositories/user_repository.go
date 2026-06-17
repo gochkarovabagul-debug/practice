@@ -20,12 +20,12 @@ func UserList(c context.Context, f models.UserFilter, moreArg ...int) ([]models.
 	sqlWhere := ` `
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
-		sqlArgs = append(sqlArgs, f.Search)
-		sqlWhere += `and (first_name ilike '%$` + LenStr(sqlArgs) + `%')`
+		sqlArgs = append(sqlArgs, "%"+f.Search+"%")
+		sqlWhere += `and first_name ilike $` + LenStr(sqlArgs)
 	}
 	if f.Role != "" {
-		sqlArgs = append(sqlArgs, f.Search)
-		sqlWhere += `and (role=$` + LenStr(sqlArgs) + `)`
+		sqlArgs = append(sqlArgs, f.Role)
+		sqlWhere += `and role=$` + LenStr(sqlArgs)
 	}
 	rows, err := db.Query(c, `select id, first_name, last_name, role, password, email from users where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
 	if err != nil {

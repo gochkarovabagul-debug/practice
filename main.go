@@ -37,6 +37,7 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 	rg := r.Group("/api")
+
 	controllers.UserRoutes(rg)
 	controllers.CategoryRoutes(rg)
 	controllers.PharmacyRoutes(rg)

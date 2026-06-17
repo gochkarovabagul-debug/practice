@@ -82,7 +82,7 @@ func FindNearbyPharmacies(c *gin.Context) {
 	utils.SuccessResponse(c, result)
 }
 func PharmacyRoutes(rg *gin.RouterGroup) {
-	rg.GET("/admin/phatmacies/findnearpharmacy", FindNearbyPharmacies)
+	rg.GET("/admin/pharmacies/findnearpharmacy", FindNearbyPharmacies)
 	rg.GET("/admin/pharmacies", PharmacyList)
 	rg.POST("/admin/pharmacies/create", CreatePharmacy).Use(permission.RequirePharmacyAdmin())
 	rg.DELETE("/admin/pharmacies/delete/:id", DeletePharmacy).Use(permission.RequirePharmacyAdmin())

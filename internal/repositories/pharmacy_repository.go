@@ -15,6 +15,9 @@ func LenStrpharmacy(l []any) string {
 
 func PharmacyList(c context.Context, f models.PharmacyFilter, moreArg ...int) ([]models.Pharmacy, error) {
 	db := utils.GetDB()
+	if f.Limit == 0 {
+		f.Limit = 0
+	}
 	sqlWhere := ` `
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
@@ -62,7 +65,7 @@ func GetPharmacy(c context.Context, id int) (models.PharmacyResponse, error) {
 }
 func UpdatePharmacy(c context.Context, id int, req models.PharmacyCreateRequest) error {
 	db := utils.GetDB()
-	_, err := db.Exec(c, "update pharmacies set name=$1, address=$2, hours=$3, admin_user_id=$4 where id=$4", req.Name, req.Address, req.Hours, req.AdminUserId, id)
+	_, err := db.Exec(c, "update pharmacies set name=$1, address=$2, hours=$3, admin_user_id=$4 where id=$5", req.Name, req.Address, req.Hours, req.AdminUserId, id)
 	if err != nil {
 		return err
 	}

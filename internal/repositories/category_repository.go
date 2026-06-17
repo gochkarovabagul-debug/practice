@@ -55,7 +55,7 @@ func DeleteCategory(c context.Context, categoryid int) error {
 func GetCategory(c context.Context, categoryid int) (models.CategoryResponse, error) {
 	db := utils.GetDB()
 	var req models.CategoryResponse
-	rows := db.QueryRow(c, "select  id, name from categories where categoryid=$1", categoryid)
+	rows := db.QueryRow(c, "select  categoryid, name from categories where categoryid=$1", categoryid)
 	err := rows.Scan(&req.CategoryId, &req.Name)
 	if err != nil {
 		return models.CategoryResponse{}, err
@@ -65,7 +65,7 @@ func GetCategory(c context.Context, categoryid int) (models.CategoryResponse, er
 func UpdateCategory(c context.Context, categoryid int, req models.CategoryCreateRequest) error {
 	db := utils.GetDB()
 
-	_, err := db.Exec(c, "update categories set name=$1 where id=$2", req.Name, categoryid)
+	_, err := db.Exec(c, "update categories set name=$1 where categoryid=$2", req.Name, categoryid)
 	if err != nil {
 		return err
 	}
