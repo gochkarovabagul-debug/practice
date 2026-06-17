@@ -2,6 +2,7 @@ package permission
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -20,10 +21,12 @@ func RequireAdmin() gin.HandlerFunc {
 		auth := c.GetHeader("Authorization")
 		token := strings.TrimPrefix(auth, "Bearer ")
 		token = strings.TrimSpace(token)
+		fmt.Print(1)
 		role, err := repositories.GetRoleByToken(c, token)
 		if err != nil {
 			utils.ErrorResponse(c, err)
 		}
+		fmt.Print(2)
 		if role != string(AdminRole) {
 			utils.ErrorResponse(c, errors.New("not admin"))
 			c.Abort()
@@ -37,15 +40,18 @@ func RequirePharmacyAdmin() gin.HandlerFunc {
 		auth := c.GetHeader("Authorization")
 		token := strings.TrimPrefix(auth, "Bearer ")
 		token = strings.TrimSpace(token)
+		fmt.Print(3)
 		role, err := repositories.GetRoleByToken(c, token)
 		if err != nil {
 			utils.ErrorResponse(c, err)
 		}
+		fmt.Print(4)
 		if role != string(AdminRole) && role != string(PharmacyRole) {
 			utils.ErrorResponse(c, errors.New("not admin"))
 			c.Abort()
 			return
 		}
 		c.Next()
+		fmt.Print(5)
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -28,7 +29,6 @@ func main() {
 	// defer utils.GetDB().Close()
 	defer utils.GetDB().Close()
 	r := gin.Default()
-	r.Use(Logger())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
@@ -36,6 +36,7 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+	r.Use(Logger())
 	rg := r.Group("/api")
 
 	controllers.UserRoutes(rg)
@@ -50,17 +51,25 @@ func main() {
 }
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.URL.Path != "/api/login" && c.Request.URL.Path != "/api/registration" {
+
+		fmt.Println(1)
+
+		if c.Request.URL.Path != "/api/auth/login" && c.Request.URL.Path != "/api/registration" {
+			fmt.Println(1)
 			auth := c.GetHeader("Authorization")
 			token := strings.TrimPrefix(auth, "Bearer ")
 			token = strings.TrimSpace(token)
+
 			userId, err := repositories.GetUserIdByToken(c.Request.Context(), token)
 			var expiresAt time.Time
 			expiresAt, err = repositories.GetExpiresAtByToken(c, token)
 			if expiresAt.Before(time.Now()) {
+				c.JSON(400, "token missing")
+				c.Abort()
 				return
 			}
-			log.Print(token, userId, err)
+			fmt.Println(1)
+			log.Println(token, userId, err)
 			if userId == 0 || err != nil {
 				c.JSON(400, "token missing")
 				c.Abort()

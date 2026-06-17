@@ -136,7 +136,7 @@ func ChangePassword(c *gin.Context) {
 	utils.SuccessResponse(c, "password changed")
 }
 func UserRoutes(rg *gin.RouterGroup) {
-	rg.GET("/auth/logout", Logout)
+	rg.POST("/auth/logout", Logout)
 	rg.POST("/auth/login", Login)
 	rg.GET("/admin/users", UserList)
 	rg.POST("/registration", Registration)
