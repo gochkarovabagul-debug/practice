@@ -59,6 +59,7 @@ func Logger() gin.HandlerFunc {
 			auth := c.GetHeader("Authorization")
 			token := strings.TrimPrefix(auth, "Bearer ")
 			token = strings.TrimSpace(token)
+			fmt.Printf("token:%v", token)
 
 			userId, err := repositories.GetUserIdByToken(c.Request.Context(), token)
 			var expiresAt time.Time
