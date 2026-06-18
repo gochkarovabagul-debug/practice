@@ -58,7 +58,7 @@ func Logger() gin.HandlerFunc {
 			var expiresAt time.Time
 			expiresAt, err = repositories.GetExpiresAtByToken(c, token)
 			if expiresAt.Before(time.Now()) {
-				c.JSON(400, "token missing")
+				c.JSON(400, "token expired")
 				c.Abort()
 				return
 			}
