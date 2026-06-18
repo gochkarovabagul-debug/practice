@@ -16,7 +16,7 @@ func PharmacyList(c *gin.Context) {
 	offsetStr := c.Query("offset")
 	offset, _ := strconv.Atoi(offsetStr)
 	search := c.Query("search")
-	list, err := services.PharmacyListService(c, models.PharmacyFilter{
+	list, total, err := services.PharmacyListService(c, models.PharmacyFilter{
 		Limit:  limit,
 		Offset: offset,
 		Search: search,
@@ -24,7 +24,7 @@ func PharmacyList(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	utils.SuccessResponse(c, list)
+	utils.SuccessResponseList(c, list, total, limit, offset)
 }
 func CreatePharmacy(c *gin.Context) {
 	var req models.PharmacyCreateRequest

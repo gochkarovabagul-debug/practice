@@ -12,7 +12,7 @@ func LenStr(l []any) string {
 	return strconv.Itoa(len(l))
 }
 
-func UserList(c context.Context, f models.UserFilter, moreArg ...int) ([]models.User, error) {
+func UserList(c context.Context, f models.UserFilter, moreArg ...int) ([]models.User, int, error) {
 	db := utils.GetDB()
 	if f.Limit == 0 {
 		f.Limit = 10
@@ -27,17 +27,18 @@ func UserList(c context.Context, f models.UserFilter, moreArg ...int) ([]models.
 		sqlArgs = append(sqlArgs, f.Role)
 		sqlWhere += `and role=$` + LenStr(sqlArgs)
 	}
-	rows, err := db.Query(c, `select id, first_name, last_name, role, password, email from users where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
+	rows, err := db.Query(c, `select id, first_name, last_name, role, password, email, count(*) over() as total from users where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+	var total int
 	list := []models.User{}
 	for rows.Next() {
 		item := models.User{}
-		rows.Scan(&item.ID, &item.FirstName, &item.LastName, &item.Role, &item.Password, &item.Email)
+		rows.Scan(&item.ID, &item.FirstName, &item.LastName, &item.Role, &item.Password, &item.Email, &total)
 		list = append(list, item)
 	}
-	return list, nil
+	return list, total, nil
 }
 func Registration(c context.Context, firstname string, lastname string, role string, password string, email string) error {
 	db := utils.GetDB()

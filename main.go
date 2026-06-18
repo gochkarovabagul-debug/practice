@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -51,15 +50,10 @@ func main() {
 }
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		fmt.Println(1)
-
 		if c.Request.URL.Path != "/api/auth/login" && c.Request.URL.Path != "/api/registration" {
-			fmt.Println(1)
 			auth := c.GetHeader("Authorization")
 			token := strings.TrimPrefix(auth, "Bearer ")
 			token = strings.TrimSpace(token)
-
 			userId, err := repositories.GetUserIdByToken(c.Request.Context(), token)
 			var expiresAt time.Time
 			expiresAt, err = repositories.GetExpiresAtByToken(c, token)
@@ -68,8 +62,6 @@ func Logger() gin.HandlerFunc {
 				c.Abort()
 				return
 			}
-			fmt.Println(1)
-			log.Println(token, userId, err)
 			if userId == 0 || err != nil {
 				c.JSON(400, "token missing")
 				c.Abort()

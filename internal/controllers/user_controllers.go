@@ -19,7 +19,7 @@ func UserList(c *gin.Context) {
 	offset, _ := strconv.Atoi(offsetStr)
 	search := c.Query("search")
 	role := c.Query("role")
-	list, err := services.UserListService(c, models.UserFilter{
+	list, total, err := services.UserListService(c, models.UserFilter{
 		Limit:  limit,
 		Offset: offset,
 		Search: search,
@@ -29,7 +29,7 @@ func UserList(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	utils.SuccessResponse(c, list)
+	utils.SuccessResponseList(c, list, total, limit, offset)
 }
 func Registration(c *gin.Context) {
 	var req models.UserCreateRequest

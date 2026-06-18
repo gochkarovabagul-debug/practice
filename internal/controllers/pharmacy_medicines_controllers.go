@@ -17,7 +17,7 @@ func PharmacyMedicineList(c *gin.Context) {
 	offsetStr := c.Query("offset")
 	offset, _ := strconv.Atoi(offsetStr)
 	search := c.Query("search")
-	list, err := services.PharmacyMedicineListService(c, models.PharmacyMedicineFilter{
+	list, total, err := services.PharmacyMedicineListService(c, models.PharmacyMedicineFilter{
 		Limit:  limit,
 		Offset: offset,
 		Search: search,
@@ -25,7 +25,7 @@ func PharmacyMedicineList(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	utils.SuccessResponse(c, list)
+	utils.SuccessResponseList(c, list, total, limit, offset)
 }
 func CreatePharmacyMedicine(c *gin.Context) {
 	auth := c.GetHeader("Authorization")
@@ -79,7 +79,7 @@ func GetPharmacyMedicine(c *gin.Context) {
 func PharmacyMedicinesRoutes(rg *gin.RouterGroup) {
 	gg := rg.Group("").Use(permission.RequirePharmacyAdmin())
 	rg.GET("/admin/medicines", PharmacyMedicineList)
-	gg.POST("/admin/medicines/create", CreatePharmacyMedicine)
+	gg.POST("/admin/medicines", CreatePharmacyMedicine)
 	gg.DELETE("/admin/medicines/delete/:id", DeletePharmacyMedicine)
 	rg.GET("/admin/medicines/get/:id", GetPharmacyMedicine)
 	gg.PUT("/admin/medicines/update/:id", UpdatePharmacyMedicine)

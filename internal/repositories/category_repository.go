@@ -12,7 +12,7 @@ func LenStrcategory(l []any) string {
 	return strconv.Itoa(len(l))
 }
 
-func CategoryList(c context.Context, f models.CategoryFilter, moreArg ...int) ([]models.Category, error) {
+func CategoryList(c context.Context, f models.CategoryFilter, moreArg ...int) ([]models.Category, int, error) {
 	db := utils.GetDB()
 	if f.Limit == 0 {
 		f.Limit = 10
@@ -20,20 +20,21 @@ func CategoryList(c context.Context, f models.CategoryFilter, moreArg ...int) ([
 	sqlWhere := ` `
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
-		sqlArgs = append(sqlArgs, f.Search)
-		sqlWhere += `and (name ilike '%$` + LenStrcategory(sqlArgs) + `%')`
+		sqlArgs = append(sqlArgs, "%"+f.Search+"%")
+		sqlWhere += `and name ilike '%$` + LenStrcategory(sqlArgs)
 	}
-	rows, err := db.Query(c, `select categoryid, name from categories where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
+	rows, err := db.Query(c, `select categoryid, name, count(*) over() as total from categories where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+	var total int
 	list := []models.Category{}
 	for rows.Next() {
 		item := models.Category{}
-		rows.Scan(&item.CategoryId, &item.Name)
+		rows.Scan(&item.CategoryId, &item.Name, &total)
 		list = append(list, item)
 	}
-	return list, nil
+	return list, total, nil
 }
 
 func CreateCategory(c context.Context, name string) error {

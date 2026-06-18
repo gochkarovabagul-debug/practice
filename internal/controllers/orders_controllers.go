@@ -15,7 +15,7 @@ func OrderList(c *gin.Context) {
 	offsetStr := c.Query("offset")
 	offset, _ := strconv.Atoi(offsetStr)
 	search := c.Query("search")
-	list, err := services.OrderListService(c, models.OrderFilter{
+	list, total, err := services.OrderListService(c, models.OrderFilter{
 		Limit:  limit,
 		Offset: offset,
 		Search: search,
@@ -23,7 +23,7 @@ func OrderList(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	utils.SuccessResponse(c, list)
+	utils.SuccessResponseList(c, list, total, limit, offset)
 }
 func CreateOrder(c *gin.Context) {
 	var req models.OrderCreateRequest

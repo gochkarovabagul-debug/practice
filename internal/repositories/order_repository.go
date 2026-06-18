@@ -12,7 +12,7 @@ func LenStrorder(l []any) string {
 	return strconv.Itoa(len(l))
 }
 
-func OrderList(c context.Context, f models.OrderFilter, moreArg ...int) ([]models.Order, error) {
+func OrderList(c context.Context, f models.OrderFilter, moreArg ...int) ([]models.Order, int, error) {
 	db := utils.GetDB()
 	if f.Limit == 0 {
 		f.Limit = 10
@@ -21,20 +21,21 @@ func OrderList(c context.Context, f models.OrderFilter, moreArg ...int) ([]model
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
 		sqlArgs = append(sqlArgs, "%"+f.Search+"%")
-		sqlWhere += `and (name ilike '%$` + LenStrorder(sqlArgs)
+		sqlWhere += `and name ilike '%$` + LenStrorder(sqlArgs)
 	}
 
-	rows, err := db.Query(c, `select id,name, price, description from orders where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
+	rows, err := db.Query(c, `select id,name, price, description, count(*) over() as total from orders where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+	var total int
 	list := []models.Order{}
 	for rows.Next() {
 		item := models.Order{}
-		rows.Scan(&item.Id, &item.Name, &item.Price, &item.Description)
+		rows.Scan(&item.Id, &item.Name, &item.Price, &item.Description, &total)
 		list = append(list, item)
 	}
-	return list, nil
+	return list, total, nil
 }
 
 func CreateOrder(c context.Context, name string, price int, description string) error {

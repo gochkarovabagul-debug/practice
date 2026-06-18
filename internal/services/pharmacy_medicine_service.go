@@ -8,8 +8,24 @@ import (
 	"github.com/gochkarovabagul-debug/practice/internal/repositories"
 )
 
-func PharmacyMedicineListService(c context.Context, filter models.PharmacyMedicineFilter) (any, error) {
-	return repositories.PharmacyMedicineList(c, filter)
+func PharmacyMedicineListService(c context.Context, filter models.PharmacyMedicineFilter) (any, int, error) {
+	list, total, err := repositories.PharmacyMedicineList(c, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+	res := []models.PharmacyMedicinesResponse{}
+	for _, v := range list {
+		item := models.PharmacyMedicinesResponse{}
+		item.Id = v.Id
+		item.Name = v.Name
+		item.Description = v.Description
+		item.Price = v.Price
+		item.NewPrice = v.NewPrice
+		item.CategoryId = v.CategoryId
+		item.PharmacyId = v.PharmacyId
+		res = append(res, item)
+	}
+	return res, total, nil
 }
 func CreatePharmacyMedicineService(c context.Context, name string, description string, price int, newprice int, categoryid int, pharmacyid int, token string) error {
 	err := repositories.CreatePharmacyMedicine(c, name, description, price, newprice, categoryid, pharmacyid)

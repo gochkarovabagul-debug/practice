@@ -16,7 +16,7 @@ func CategoryList(c *gin.Context) {
 	offsetStr := c.Query("offset")
 	offset, _ := strconv.Atoi(offsetStr)
 	search := c.Query("search")
-	list, err := services.CategoryListService(c, models.CategoryFilter{
+	list, total, err := services.CategoryListService(c, models.CategoryFilter{
 		Limit:  limit,
 		Offset: offset,
 		Search: search,
@@ -24,7 +24,7 @@ func CategoryList(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	utils.SuccessResponse(c, list)
+	utils.SuccessResponseList(c, list, total, limit, offset)
 }
 func CreateCategory(c *gin.Context) {
 	var req models.CategoryCreateRequest

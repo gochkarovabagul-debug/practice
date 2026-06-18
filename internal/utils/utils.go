@@ -33,6 +33,17 @@ func ErrorResponse(c *gin.Context, err error) {
 		"error_msg": err.Error(),
 	})
 }
+func SuccessResponseList(c *gin.Context, message any, total int, limit int, offset int) {
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    message,
+		"meta": gin.H{
+			"total":  total,
+			"limit":  limit,
+			"offset": offset,
+		},
+	})
+}
 func SuccessResponse(c *gin.Context, message any) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

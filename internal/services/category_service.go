@@ -7,10 +7,10 @@ import (
 	"github.com/gochkarovabagul-debug/practice/internal/repositories"
 )
 
-func CategoryListService(c context.Context, filter models.CategoryFilter) (any, error) {
-	list, err := repositories.CategoryList(c, filter)
+func CategoryListService(c context.Context, filter models.CategoryFilter) (any, int, error) {
+	list, total, err := repositories.CategoryList(c, filter)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	res := []models.CategoryResponse{}
 	for _, v := range list {
@@ -19,7 +19,7 @@ func CategoryListService(c context.Context, filter models.CategoryFilter) (any, 
 		item.Name = v.Name
 		res = append(res, item)
 	}
-	return res, nil
+	return res, total, nil
 }
 func CreateCategoryService(c context.Context, name string) error {
 	return repositories.CreateCategory(c, name)

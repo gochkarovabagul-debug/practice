@@ -13,7 +13,7 @@ func LenStrpharmacy(l []any) string {
 	return strconv.Itoa(len(l))
 }
 
-func PharmacyList(c context.Context, f models.PharmacyFilter, moreArg ...int) ([]models.Pharmacy, error) {
+func PharmacyList(c context.Context, f models.PharmacyFilter, moreArg ...int) ([]models.Pharmacy, int, error) {
 	db := utils.GetDB()
 	if f.Limit == 0 {
 		f.Limit = 0
@@ -21,20 +21,21 @@ func PharmacyList(c context.Context, f models.PharmacyFilter, moreArg ...int) ([
 	sqlWhere := ` `
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
-		sqlArgs = append(sqlArgs, f.Search)
-		sqlWhere += `and (name ilike '%$` + LenStrpharmacy(sqlArgs) + `%')`
+		sqlArgs = append(sqlArgs, "%"+f.Search+"%")
+		sqlWhere += `and name ilike '%$` + LenStrpharmacy(sqlArgs)
 	}
-	rows, err := db.Query(c, `select id,name, address, hours from pharmacies where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
+	rows, err := db.Query(c, `select id,name, address, hours, count(*) over() as total from pharmacies where 1=1 `+sqlWhere+` limit $1 offset  $2`, sqlArgs...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+	var total int
 	list := []models.Pharmacy{}
 	for rows.Next() {
 		item := models.Pharmacy{}
-		rows.Scan(&item.Id, &item.Name, &item.Address, &item.Hours)
+		rows.Scan(&item.Id, &item.Name, &item.Address, &item.Hours, &total)
 		list = append(list, item)
 	}
-	return list, nil
+	return list, total, nil
 }
 
 func CreatePharmacy(c context.Context, name string, address string, hours int, adminuserid int) error {
