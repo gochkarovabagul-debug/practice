@@ -3,22 +3,43 @@ package utils
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var db *pgx.Conn
+var db *pgxpool.Pool
 
 func ConnectDB(config string) {
-	conn, err := pgx.Connect(context.Background(), config)
+	conn, err := pgxpool.New(context.Background(), config)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Db error : %v\n", err)
 		os.Exit(1)
 	}
 	db = conn
 }
+func ErrorCheck(c *gin.Context, err error) bool {
+	if err != nil {
+		ErrorResponse(c, err)
+		return true
+	}
+	return false
+}
+func ErrorResponse(c *gin.Context, err error) {
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"success":   false,
+		"error_msg": err.Error(),
+	})
+}
+func SuccessResponse(c *gin.Context, message any) {
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    message,
+	})
+}
 
-func GetDB() *pgx.Conn {
+func GetDB() *pgxpool.Pool {
 	return db
 }

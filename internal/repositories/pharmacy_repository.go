@@ -2,24 +2,22 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/gochkarovabagul-debug/practice/internal/models"
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
 
-type PharmacyFilter struct {
-	Limit  int
-	Offset int
-	Search string
-}
-
 func LenStrpharmacy(l []any) string {
 	return strconv.Itoa(len(l))
 }
 
-func PharmacyList(c context.Context, f PharmacyFilter, moreArg ...int) ([]models.Pharmacy, error) {
+func PharmacyList(c context.Context, f models.PharmacyFilter, moreArg ...int) ([]models.Pharmacy, error) {
 	db := utils.GetDB()
+	if f.Limit == 0 {
+		f.Limit = 0
+	}
 	sqlWhere := ` `
 	sqlArgs := []any{f.Limit, f.Offset}
 	if f.Search != "" {
@@ -39,9 +37,9 @@ func PharmacyList(c context.Context, f PharmacyFilter, moreArg ...int) ([]models
 	return list, nil
 }
 
-func CreatePharmacy(c context.Context, name string, address string, hours int) error {
+func CreatePharmacy(c context.Context, name string, address string, hours int, adminuserid int) error {
 	db := utils.GetDB()
-	_, err := db.Exec(c, "insert into pharmacies (name, address, hours) values ($1, $2, $3)", name, address, hours)
+	_, err := db.Exec(c, "insert into pharmacies (name, address, hours, admin_user_id) values ($1, $2, $3, $4)", name, address, hours, adminuserid)
 	if err != nil {
 		return err
 	}
@@ -58,8 +56,8 @@ func DeletePharmacy(c context.Context, id int) error {
 func GetPharmacy(c context.Context, id int) (models.PharmacyResponse, error) {
 	db := utils.GetDB()
 	var req models.PharmacyResponse
-	rows := db.QueryRow(context.Background(), "select  id, name, address, hours from pharmacies where id=$1", id)
-	err := rows.Scan(&req.Id, &req.Name, &req.Address, &req.Hours)
+	rows := db.QueryRow(c, "select  id, name, address, hours, admin_user_id from pharmacies where id=$1", id)
+	err := rows.Scan(&req.Id, &req.Name, &req.Address, &req.Hours, &req.AdminUserId)
 	if err != nil {
 		return models.PharmacyResponse{}, err
 	}
@@ -67,10 +65,22 @@ func GetPharmacy(c context.Context, id int) (models.PharmacyResponse, error) {
 }
 func UpdatePharmacy(c context.Context, id int, req models.PharmacyCreateRequest) error {
 	db := utils.GetDB()
-
-	_, err := db.Exec(context.Background(), "update pharmacies set name=$1, address=$2, hours=$3  where id=$4", req.Name, req.Address, req.Hours, id)
+	_, err := db.Exec(c, "update pharmacies set name=$1, address=$2, hours=$3, admin_user_id=$4 where id=$5", req.Name, req.Address, req.Hours, req.AdminUserId, id)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+func FindNearbyPharmacies(c context.Context, lon float64, lat float64) (models.NearPharmacies, error) {
+	db := utils.GetDB()
+	fmt.Println("LON:", lon)
+	fmt.Println("LAT:", lat)
+	var result models.NearPharmacies
+
+	rows := db.QueryRow(c, "select name from pharmacies order by ST_Distance(ST_MakePoint(longitude, latitude)::geography, ST_MakePoint($1, $2)::geography) ASC LIMIT 1", lon, lat)
+	err := rows.Scan(&result.Name)
+	if err != nil {
+		return models.NearPharmacies{}, err
+	}
+	return result, nil
 }

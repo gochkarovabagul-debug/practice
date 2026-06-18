@@ -1,12 +1,13 @@
 package controllers
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gochkarovabagul-debug/practice/internal/models"
-	"github.com/gochkarovabagul-debug/practice/internal/repositories"
+	"github.com/gochkarovabagul-debug/practice/internal/permission"
+	"github.com/gochkarovabagul-debug/practice/internal/services"
+	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
 
 func CategoryList(c *gin.Context) {
@@ -15,100 +16,68 @@ func CategoryList(c *gin.Context) {
 	offsetStr := c.Query("offset")
 	offset, _ := strconv.Atoi(offsetStr)
 	search := c.Query("search")
-	list, err := repositories.CategoryList(c, repositories.CategoryFilter{
+	list, err := services.CategoryListService(c, models.CategoryFilter{
 		Limit:  limit,
 		Offset: offset,
 		Search: search,
 	})
-	if err != nil {
-		c.JSON(500, gin.H{
-			"success":   false,
-			"error_msg": err.Error(),
-		})
+	if utils.ErrorCheck(c, err) {
 		return
 	}
-
-	c.JSON(200, gin.H{
-		"success": true,
-		"data":    list,
-	})
+	utils.SuccessResponse(c, list)
 }
 func CreateCategory(c *gin.Context) {
 	var req models.CategoryCreateRequest
 	err := c.Bind(&req)
-	if err != nil {
-		c.JSON(400, gin.H{
-			"error": err.Error(),
-		})
+	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err1 := repositories.CreateCategory(c.Request.Context(), req.Name)
-	if err1 != nil {
-		c.JSON(500, gin.H{
-			"error": err1.Error(),
-		})
+	err = services.CreateCategoryService(c, req.Name)
+	if utils.ErrorCheck(c, err) {
 		return
 	}
-	c.JSON(200, gin.H{
-		"success": true,
-	})
+
+	utils.SuccessResponse(c, "category created")
 }
 func DeleteCategory(c *gin.Context) {
 	categoryidstr := c.Param("id")
 	categoryid, _ := strconv.Atoi(categoryidstr)
-	err1 := repositories.DeleteCategory(c.Request.Context(), categoryid)
-	if err1 != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err1.Error(),
-		})
+	err := services.DeleteCategoryService(c, categoryid)
+	if utils.ErrorCheck(c, err) {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-	})
+	utils.SuccessResponse(c, "category deleted")
 }
 func UpdateCategory(c *gin.Context) {
 	categoryidstr := c.Param("id")
 	categoryid, _ := strconv.Atoi(categoryidstr)
 	var req models.CategoryCreateRequest
 	err := c.Bind(&req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err = repositories.UpdateCategory(c.Request.Context(), categoryid, req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+	err = services.UpdateCategoryService(c, categoryid, req)
+	if utils.ErrorCheck(c, err) {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-	})
+	utils.SuccessResponse(c, "category updated")
+
 }
 func GetCategory(c *gin.Context) {
 	categoryidstr := c.Param("id")
 	categoryid, _ := strconv.Atoi(categoryidstr)
-	req, err1 := repositories.GetCategory(c.Request.Context(), categoryid)
-	if err1 != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err1.Error(),
-		})
+	req, err := services.GetCategoryService(c, categoryid)
+	if utils.ErrorCheck(c, err) {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    req,
-	})
+	utils.SuccessResponse(c, req)
 }
 
 func CategoryRoutes(rg *gin.RouterGroup) {
+	gg := rg.Group("").Use(permission.RequireAdmin())
 	rg.GET("/admin/categories", CategoryList)
-	rg.POST("/admin/categories/create", CreateCategory)
-	rg.DELETE("/admin/categories/delete/:categoryid", DeleteCategory)
+	gg.POST("/admin/categories/create", CreateCategory)
+	gg.DELETE("/admin/categories/delete/:categoryid", DeleteCategory)
 	rg.GET("/admin/categories/get/:categoryid", GetCategory)
-	rg.PUT("/admin/categories/update/:categoryid", UpdateCategory)
+	gg.PUT("/admin/categories/update/:categoryid", UpdateCategory)
 }
