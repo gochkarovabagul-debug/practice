@@ -50,7 +50,7 @@ func main() {
 }
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.URL.Path != "/api/auth/login" && c.Request.URL.Path != "/api/registration" {
+		if c.Request.URL.Path != "/api/auth/login" && c.Request.URL.Path != "/api/auth/register" {
 			auth := c.GetHeader("Authorization")
 			token := strings.TrimPrefix(auth, "Bearer ")
 			token = strings.TrimSpace(token)
