@@ -78,9 +78,11 @@ func GetPharmacyMedicine(c *gin.Context) {
 }
 func PharmacyMedicinesRoutes(rg *gin.RouterGroup) {
 	gg := rg.Group("").Use(permission.RequirePharmacyAdmin())
-	rg.GET("/admin/medicines", PharmacyMedicineList)
+	gg.GET("/admin/medicines", PharmacyMedicineList)
+	rg.GET("/catalog /medicines", PharmacyMedicineList)
 	gg.POST("/admin/medicines", CreatePharmacyMedicine)
-	gg.DELETE("/admin/medicines/delete/:id", DeletePharmacyMedicine)
-	rg.GET("/admin/medicines/get/:id", GetPharmacyMedicine)
-	gg.PUT("/admin/medicines/update/:id", UpdatePharmacyMedicine)
+	gg.DELETE("/admin/medicines/:id", DeletePharmacyMedicine)
+	gg.GET("/admin/medicines/:id", GetPharmacyMedicine)
+	rg.GET("/catalog/medicines/:id", GetPharmacyMedicine)
+	gg.PUT("/admin/medicines/:id", UpdatePharmacyMedicine)
 }

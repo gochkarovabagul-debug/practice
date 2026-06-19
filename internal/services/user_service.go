@@ -32,14 +32,28 @@ func UserListService(c context.Context, filter models.UserFilter) ([]models.User
 func RegistrationService(c context.Context, firstname string, lastname string, role string, password string, email string) error {
 	return repositories.Registration(c, firstname, lastname, "customer", password, email)
 }
+func CreateUserByAdminService(c context.Context, firstname string, lastname string, role string, password string, email string) (models.UserResponse, error) {
+	err := repositories.CreateUserByAdmin(c, firstname, lastname, role, password, email)
+	if err != nil {
+		return models.UserResponse{}, err
+	}
+	user, err := repositories.GetUserByEmail(c, email, false)
+	return user, nil
+}
 func DeleteUserService(c context.Context, id int) error {
 	return repositories.DeleteUser(c, id)
 }
-func GetUserService(c context.Context, token string, word bool) (models.UserResponse, error) {
-	return repositories.GetUser(c, token, word)
+func GetUserByTokenService(c context.Context, token string, word bool) (models.UserResponse, error) {
+	return repositories.GetUserByToken(c, token, word)
+}
+func GetUserByIdService(c context.Context, id int, word bool) (models.UserResponse, error) {
+	return repositories.GetUserById(c, id, word)
 }
 func UpdateUserService(c context.Context, token string, req models.UserUpdateRequest) error {
 	return repositories.UpdateUser(c, token, req)
+}
+func UpdateUserByIdService(c context.Context, id int, req models.UserUpdateRequest) error {
+	return repositories.UpdateUserById(c, id, req)
 }
 func GenerateSecureToken(length int) string {
 	b := make([]byte, length)
@@ -49,7 +63,7 @@ func GenerateSecureToken(length int) string {
 	return hex.EncodeToString(b)
 }
 func LoginService(c context.Context, email string, password string) (string, error) {
-	user, err := repositories.GetUserEmail(c, email)
+	user, err := repositories.GetUserByEmail(c, email, true)
 	if err != nil {
 		return "", err
 	}
@@ -74,7 +88,7 @@ func LogoutService(c context.Context, token string) (string, error) {
 	return "not token", nil
 }
 func ChangePasswordService(c context.Context, token string, word bool, passchange models.ChangePasswordRequest, req models.UserResponse) error {
-	req, err := repositories.GetUser(c, token, word)
+	req, err := repositories.GetUserByToken(c, token, word)
 	if err != nil {
 		return err
 	}

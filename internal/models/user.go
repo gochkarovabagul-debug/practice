@@ -32,6 +32,7 @@ type UserResponse struct {
 type UserUpdateRequest struct {
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
+	Role      string `json:"role"`
 }
 type ChangePasswordRequest struct {
 	OldPassword string `json:"oldpassword" binding:"required,min=8"`

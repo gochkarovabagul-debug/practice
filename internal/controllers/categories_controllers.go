@@ -74,10 +74,12 @@ func GetCategory(c *gin.Context) {
 }
 
 func CategoryRoutes(rg *gin.RouterGroup) {
-	gg := rg.Group("").Use(permission.RequireAdmin())
-	rg.GET("/admin/categories", CategoryList)
-	gg.POST("/admin/categories/create", CreateCategory)
-	gg.DELETE("/admin/categories/delete/:categoryid", DeleteCategory)
-	rg.GET("/admin/categories/get/:categoryid", GetCategory)
-	gg.PUT("/admin/categories/update/:categoryid", UpdateCategory)
+	gg := rg.Group("").Use(permission.RequirePharmacyAdmin())
+	gg.GET("/admin/categories", CategoryList)
+	rg.GET("/catalog/categories", CategoryList)
+	gg.POST("/admin/categories", CreateCategory)
+	gg.DELETE("/admin/categories/:id", DeleteCategory)
+	gg.GET("/admin/categories/:id", GetCategory)
+	rg.GET("/catalog/categories/:id", GetCategory)
+	gg.PUT("/admin/categories/:id", UpdateCategory)
 }

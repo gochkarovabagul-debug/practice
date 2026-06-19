@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gochkarovabagul-debug/practice/internal/models"
+	"github.com/gochkarovabagul-debug/practice/internal/permission"
 	"github.com/gochkarovabagul-debug/practice/internal/services"
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
@@ -43,6 +44,15 @@ func Registration(c *gin.Context) {
 	}
 	utils.SuccessResponse(c, "user created")
 }
+func CreateUserByAdmin(c *gin.Context) {
+	var req models.UserCreateRequest
+	err := c.Bind(&req)
+	if utils.ErrorCheck(c, err) {
+		return
+	}
+	user, err := services.CreateUserByAdminService(c, req.FirstName, req.LastName, req.Role, req.Password, req.Email)
+	utils.SuccessResponse(c, user)
+}
 func DeleteUser(c *gin.Context) {
 	idstr := c.Param("id")
 	id, _ := strconv.Atoi(idstr)
@@ -52,11 +62,20 @@ func DeleteUser(c *gin.Context) {
 	}
 	utils.SuccessResponse(c, "user deleted")
 }
+func GetUserById(c *gin.Context) {
+	idstr := c.Param("id")
+	id, _ := strconv.Atoi(idstr)
+	user, err := services.GetUserByIdService(c, id, false)
+	if utils.ErrorCheck(c, err) {
+		return
+	}
+	utils.SuccessResponse(c, user)
+}
 func GetUser(c *gin.Context) {
 	auth := c.GetHeader("Authorization")
 	token := strings.TrimPrefix(auth, "Bearer ")
 	token = strings.TrimSpace(token)
-	req, err := services.GetUserService(c, token, false)
+	req, err := services.GetUserByTokenService(c, token, false)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
@@ -72,6 +91,20 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 	err = services.UpdateUserService(c, token, req)
+	if utils.ErrorCheck(c, err) {
+		return
+	}
+	utils.SuccessResponse(c, "user updated")
+}
+func UpdateUserByAdmin(c *gin.Context) {
+	idstr := c.Param("id")
+	id, _ := strconv.Atoi(idstr)
+	var req models.UserUpdateRequest
+	err := c.Bind(&req)
+	if utils.ErrorCheck(c, err) {
+		return
+	}
+	err = services.UpdateUserByIdService(c, id, req)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
@@ -95,7 +128,7 @@ func Login(c *gin.Context) {
 		utils.ErrorResponse(c, err)
 		return
 	}
-	user, err := services.GetUserService(c, Token, false)
+	user, err := services.GetUserByTokenService(c, Token, false)
 	if err != nil {
 		utils.ErrorResponse(c, err)
 		return
@@ -107,7 +140,6 @@ func Login(c *gin.Context) {
 	})
 }
 func Logout(c *gin.Context) {
-	// token := c.Query("token")
 	auth := c.GetHeader("Authorization")
 	token := strings.TrimPrefix(auth, "Bearer ")
 	token = strings.TrimSpace(token)
@@ -136,12 +168,16 @@ func ChangePassword(c *gin.Context) {
 	utils.SuccessResponse(c, "password changed")
 }
 func UserRoutes(rg *gin.RouterGroup) {
-	rg.POST("/auth/logout", Logout)
+	gg := rg.Group("").Use(permission.RequireAdmin())
+	rg.POST("/auth/register", Registration)
 	rg.POST("/auth/login", Login)
-	rg.GET("/admin/users", UserList)
-	rg.POST("/registration", Registration)
-	rg.DELETE("/admin/users/delete/:id", DeleteUser)
+	rg.POST("/auth/logout", Logout)
+	gg.GET("/admin/users", UserList)
+	gg.POST("/admin/users", CreateUserByAdmin)
+	gg.GET("/admin/users/:id", GetUserById)
+	gg.PUT("/admin/users/:id", UpdateUserByAdmin)
+	gg.DELETE("/admin/users/:id", DeleteUser)
 	rg.GET("/user/me", GetUser)
-	rg.POST("/user/me", UpdateUser)
+	rg.PUT("/user/me", UpdateUser)
 	rg.POST("/user/changepassword", ChangePassword)
 }

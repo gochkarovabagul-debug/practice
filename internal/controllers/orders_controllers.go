@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gochkarovabagul-debug/practice/internal/models"
+	"github.com/gochkarovabagul-debug/practice/internal/permission"
 	"github.com/gochkarovabagul-debug/practice/internal/services"
 	"github.com/gochkarovabagul-debug/practice/internal/utils"
 )
@@ -72,9 +73,10 @@ func GetOrder(c *gin.Context) {
 }
 
 func OrderRoutes(rg *gin.RouterGroup) {
-	rg.GET("/admin/orders", OrderList)
+	gg := rg.Group("").Use(permission.RequirePharmacyAdmin())
+	gg.GET("/admin/orders", OrderList)
 	rg.POST("/admin/orders/create", CreateOrder)
 	rg.DELETE("/admin/orders/delete/:id", DeleteOrder)
-	rg.GET("/admin/orders/get/:id", GetOrder)
+	gg.GET("/admin/orders/get/:id", GetOrder)
 	rg.PUT("/admin/orders/update/:id", UpdateOrder)
 }

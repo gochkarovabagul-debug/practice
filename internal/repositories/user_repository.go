@@ -48,6 +48,14 @@ func Registration(c context.Context, firstname string, lastname string, role str
 	}
 	return nil
 }
+func CreateUserByAdmin(c context.Context, firstname string, lastname string, role string, password string, email string) error {
+	db := utils.GetDB()
+	_, err := db.Exec(c, "insert into users (first_name, last_name, role, password, email) values ($1, $2, $3, $4, $5)", firstname, lastname, role, password, email)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func DeleteUser(c context.Context, id int) error {
 	db := utils.GetDB()
 	_, err := db.Exec(c, "delete from users where id=$1", id)
@@ -65,7 +73,7 @@ func DeleteToken(c context.Context, token string) error {
 	return nil
 }
 
-func GetUser(c context.Context, token string, hasPass bool) (models.UserResponse, error) {
+func GetUserByToken(c context.Context, token string, hasPass bool) (models.UserResponse, error) {
 	db := utils.GetDB()
 	var req models.UserResponse
 	rows := db.QueryRow(c, "select  u.id, u.first_name, u.last_name, u.role, u.password, u.email from users u join tokens t on t.userid=u.id where t.token=$1", token)
@@ -78,13 +86,31 @@ func GetUser(c context.Context, token string, hasPass bool) (models.UserResponse
 	}
 	return req, nil
 }
-func GetUserEmail(c context.Context, email string) (models.UserResponse, error) {
+func GetUserByEmail(c context.Context, email string, hasPass bool) (models.UserResponse, error) {
 	db := utils.GetDB()
 	var user models.UserResponse
 
 	rows := db.QueryRow(c, "select  id, first_name, last_name, role, password, email from users where email=$1", email)
 
 	err := rows.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Role, &user.Password, &user.Email)
+	if !hasPass {
+		user.Password = ""
+	}
+	if err != nil {
+		return models.UserResponse{}, err
+	}
+	return user, nil
+}
+func GetUserById(c context.Context, id int, hasPass bool) (models.UserResponse, error) {
+	db := utils.GetDB()
+	var user models.UserResponse
+
+	rows := db.QueryRow(c, "select  id, first_name, last_name, role, password, email from users where email=$1", id)
+
+	err := rows.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Role, &user.Password, &user.Email)
+	if !hasPass {
+		user.Password = ""
+	}
 	if err != nil {
 		return models.UserResponse{}, err
 	}
@@ -95,6 +121,16 @@ func UpdateUser(c context.Context, token string, req models.UserUpdateRequest) e
 	db := utils.GetDB()
 
 	_, err := db.Exec(c, "update users u set first_name=$1, last_name=$2 from tokens t where t.userid=u.id and t.token=$3", req.FirstName, req.LastName, token)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateUserById(c context.Context, id int, req models.UserUpdateRequest) error {
+	db := utils.GetDB()
+
+	_, err := db.Exec(c, "update users set first_name=$1, last_name=$2, role=$3 where id=$4", req.FirstName, req.LastName, req.Role, id)
 	if err != nil {
 		return err
 	}
