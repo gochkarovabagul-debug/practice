@@ -36,7 +36,7 @@ func CreatePharmacyMedicine(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err = services.CreatePharmacyMedicineService(c, req.Name, req.Description, req.Price, req.NewPrice, req.CategoryId, req.PharmacyId, token)
+	err = services.CreatePharmacyMedicineService(c, req.Name, req.Description, req.Price, req.NewPrice, req.CategoryId, req.PharmacyId, req.Stock, token)
 	if err != nil {
 		utils.ErrorResponse(c, err)
 		return

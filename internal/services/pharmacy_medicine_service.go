@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/gochkarovabagul-debug/practice/internal/models"
 	"github.com/gochkarovabagul-debug/practice/internal/repositories"
@@ -23,25 +24,28 @@ func PharmacyMedicineListService(c context.Context, filter models.PharmacyMedici
 		item.NewPrice = v.NewPrice
 		item.CategoryId = v.CategoryId
 		item.PharmacyId = v.PharmacyId
+		item.Stock = v.Stock
 		res = append(res, item)
 	}
 	return res, total, nil
 }
-func CreatePharmacyMedicineService(c context.Context, name string, description string, price int, newprice int, categoryid int, pharmacyid int, token string) error {
-	err := repositories.CreatePharmacyMedicine(c, name, description, price, newprice, categoryid, pharmacyid)
-	if err != nil {
-		return err
-	}
+func CreatePharmacyMedicineService(c context.Context, name string, description string, price int, newprice int, categoryid int, pharmacyid int, stock int, token string) error {
 	userid, err := repositories.GetUserIdByToken(c, token)
 	if err != nil {
 		return err
 	}
+	fmt.Println("userid: ", userid)
 	adminid, err := repositories.FindAdminId(c, pharmacyid)
 	if err != nil {
 		return err
 	}
+	fmt.Println("adminid: ", adminid)
 	if userid != adminid {
 		return errors.New("forbidden")
+	}
+	err = repositories.CreatePharmacyMedicine(c, name, description, price, newprice, categoryid, pharmacyid, stock)
+	if err != nil {
+		return err
 	}
 	return nil
 }

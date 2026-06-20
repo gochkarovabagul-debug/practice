@@ -20,8 +20,7 @@ func UserListService(c context.Context, filter models.UserFilter) ([]models.User
 	for _, v := range list {
 		item := models.UserResponse{}
 		item.Id = v.ID
-		item.FirstName = v.FirstName
-		item.LastName = v.LastName
+		item.Name = v.Name
 		item.Role = v.Role
 		item.Password = v.Password
 		item.Email = v.Email
@@ -29,11 +28,23 @@ func UserListService(c context.Context, filter models.UserFilter) ([]models.User
 	}
 	return res, total, nil
 }
-func RegistrationService(c context.Context, firstname string, lastname string, role string, password string, email string) error {
-	return repositories.Registration(c, firstname, lastname, "customer", password, email)
+func RegistrationService(c context.Context, name string, role string, password string, email string) (string, error) {
+	err := repositories.Registration(c, name, "customer", password, email)
+	if err != nil {
+		return "", err
+	}
+	user, err := repositories.GetUserByEmail(c, email, true)
+	if err != nil {
+		return "", err
+	}
+	token, err := NewToken(c, 32, user.Id)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
-func CreateUserByAdminService(c context.Context, firstname string, lastname string, role string, password string, email string) (models.UserResponse, error) {
-	err := repositories.CreateUserByAdmin(c, firstname, lastname, role, password, email)
+func CreateUserByAdminService(c context.Context, name string, role string, password string, email string) (models.UserResponse, error) {
+	err := repositories.CreateUserByAdmin(c, name, role, password, email)
 	if err != nil {
 		return models.UserResponse{}, err
 	}
@@ -62,6 +73,14 @@ func GenerateSecureToken(length int) string {
 	}
 	return hex.EncodeToString(b)
 }
+func NewToken(c context.Context, length int, id int) (string, error) {
+	token := GenerateSecureToken(32)
+	err := repositories.InsertToken(c, token, id)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
 func LoginService(c context.Context, email string, password string) (string, error) {
 	user, err := repositories.GetUserByEmail(c, email, true)
 	if err != nil {
@@ -70,12 +89,11 @@ func LoginService(c context.Context, email string, password string) (string, err
 	if user.Password != password {
 		return "", errors.New("wrong password")
 	}
-	Token := GenerateSecureToken(32)
-	err = repositories.InsertToken(c, Token, user.Id)
+	token, err := NewToken(c, 32, user.Id)
 	if err != nil {
 		return "", err
 	}
-	return Token, nil
+	return token, nil
 }
 func LogoutService(c context.Context, token string) (string, error) {
 	if repositories.CheckIsTokenReal(c, token) {

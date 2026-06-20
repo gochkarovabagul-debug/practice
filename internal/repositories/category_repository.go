@@ -47,7 +47,7 @@ func CreateCategory(c context.Context, name string) error {
 }
 func DeleteCategory(c context.Context, categoryid int) error {
 	db := utils.GetDB()
-	_, err := db.Exec(c, "delete from categories where id=$1", categoryid)
+	_, err := db.Exec(c, "delete from categories where categoryid=$1", categoryid)
 	if err != nil {
 		return err
 	}

@@ -38,11 +38,12 @@ func Registration(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	err = services.RegistrationService(c, req.FirstName, req.LastName, "customer", req.Password, req.Email)
+	var token string
+	token, err = services.RegistrationService(c, req.Name, "customer", req.Password, req.Email)
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	utils.SuccessResponse(c, "user created")
+	utils.SuccessResponse(c, token)
 }
 func CreateUserByAdmin(c *gin.Context) {
 	var req models.UserCreateRequest
@@ -50,7 +51,7 @@ func CreateUserByAdmin(c *gin.Context) {
 	if utils.ErrorCheck(c, err) {
 		return
 	}
-	user, err := services.CreateUserByAdminService(c, req.FirstName, req.LastName, req.Role, req.Password, req.Email)
+	user, err := services.CreateUserByAdminService(c, req.Name, req.Role, req.Password, req.Email)
 	utils.SuccessResponse(c, user)
 }
 func DeleteUser(c *gin.Context) {
@@ -177,7 +178,7 @@ func UserRoutes(rg *gin.RouterGroup) {
 	gg.GET("/admin/users/:id", GetUserById)
 	gg.PUT("/admin/users/:id", UpdateUserByAdmin)
 	gg.DELETE("/admin/users/:id", DeleteUser)
-	rg.GET("/user/me", GetUser)
-	rg.PUT("/user/me", UpdateUser)
+	rg.GET("/me", GetUser)
+	rg.PUT("/me", UpdateUser)
 	rg.POST("/user/changepassword", ChangePassword)
 }

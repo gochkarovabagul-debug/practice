@@ -14,6 +14,7 @@ type PharmacyMedicine struct {
 	NewPrice    int
 	CategoryId  int
 	PharmacyId  int
+	Stock       int
 }
 
 type PharmacyMedicinesResponse struct {
@@ -21,15 +22,17 @@ type PharmacyMedicinesResponse struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Price       int    `json:"price"`
-	NewPrice    int    `json:"newprice"`
-	CategoryId  int    `json:"categoryid"`
-	PharmacyId  int    `json:"pharmacyid"`
+	NewPrice    int    `json:"new_price"`
+	CategoryId  int    `json:"category_id"`
+	PharmacyId  int    `json:"pharmacy_id"`
+	Stock       int    `json:"stock"`
 }
 type PharmacyMedicinesCreateRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Price       int    `json:"price"`
-	NewPrice    int    `json:"newprice"`
-	CategoryId  int    `json:"categoryid"`
-	PharmacyId  int    `json:"pharmacyid"`
+	NewPrice    int    `json:"new_price"`
+	CategoryId  int    `json:"category_id"`
+	PharmacyId  int    `json:"pharmacy_id"`
+	Stock       int    `json:"stock"`
 }
